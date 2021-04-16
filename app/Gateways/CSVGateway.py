@@ -11,6 +11,7 @@ class CSVGateway:
     def __init__(self, target_file):        
         self.current_path = target_file
         if not os.path.exists(self.current_path):
+            print('creating file  {} '.format(self.current_path))
             with open(self.current_path, 'w'): pass
 
     def create_source(self, source, start, end, total, availability_good, experience_good, latency):
