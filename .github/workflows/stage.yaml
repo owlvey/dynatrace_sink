@@ -1,0 +1,23 @@
+name: Build Image
+
+on: push
+
+jobs:    
+    build:      
+      name: Build 
+      runs-on: ubuntu-latest
+      steps:        
+        - uses: actions/checkout@v2                           
+        - name: current dir
+          run: pwd
+        - name: list files                                      
+          run: ls -la        
+        - name: docker build                            
+          run: docker build -t owlvey-dynatrace-sink:latest .
+        - name: docker login
+          run: docker login -u="${{ secrets.DOCKER_USERNAME }}" -p="${{ secrets.DOCKER_PASSWORD }}"
+        - name: docker tag
+          run: |
+            docker tag owlvey-dynatrace-sink owlvey/owlvey-dynatrace-sink:latest
+            docker tag owlvey-dynatrace-sink owlvey/owlvey-dynatrace-sink:${{ github.sha }}                  
+            docker push owlvey/owlvey-dynatrace-sink
