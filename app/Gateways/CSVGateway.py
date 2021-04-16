@@ -15,6 +15,7 @@ class CSVGateway:
             try:
                 with open(self.current_path, 'w'): pass
             except:
+                
                 pass
 
     def create_source(self, source, start, end, total, availability_good, experience_good, latency):
