@@ -7,7 +7,8 @@ from app.core.ServiceMethodEntity import ServiceMethodEntity
 class ServiceMethodFactory:
 
     @staticmethod
-    def parse(services: dict, target):
+    def parse(services: dict, target, prefix):
+        
         result = list()
         methods = {}
         data = target["dataResult"]
@@ -15,7 +16,7 @@ class ServiceMethodFactory:
 
         for k, v in data_entities.items():
             if "SERVICE_METHOD" in k:
-                tmp = ServiceMethodEntity()
+                tmp = ServiceMethodEntity(prefix)
                 tmp.name = v
                 tmp.method_id = k
                 methods[k] = tmp
@@ -28,10 +29,9 @@ class ServiceMethodFactory:
 
         for k, v in data_points.items():
             service_id, method_id = k.split(",")
-            method = methods[method_id.strip()]
-            method.service_id = service_id
-            method.service = services[service_id]
-
+            method = methods[method_id.strip()]            
+            method.set_service(services[service_id])            
+            
             for item in v:
                 stamp_date = DatetimeUtils.convert_from_timestamp(item[0])
                 if item[1]:

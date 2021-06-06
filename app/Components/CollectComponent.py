@@ -18,7 +18,7 @@ class CollectComponent:
         self.entity_name = entity_name
         self.entity_tag = entity_tag
         self.prefix = entity_prefix
-        self.logger = logging.getLogger()
+        self.logger = logging.getLogger(__class__.__name__)
 
 
     def collect(self):
@@ -32,24 +32,28 @@ class CollectComponent:
 
         if self.start_on < limit:        
             next_date = self.start_on + timedelta(minutes=59, seconds=59)        
-            self.logger.warning("\n sync {} sli between {} - {}".format(self.entity_tag, self.start_on, next_date))            
+            self.logger.warning("sync {} sli between {} - {}".format(self.entity_tag, self.start_on, next_date))            
             self.__load_dynatrace_data(self.start_on, next_date)
-            self.start_on = next_date + timedelta(seconds=1)                                
+            self.start_on = next_date + timedelta(seconds=1)     
+        else:
+            self.logger.warning("limit {}".format(limit))
 
     def __internal_load_dynatrace_data(self, start, end):
         services = self.dynatrace_gateway.get_services()
         service_methods = self.dynatrace_gateway.get_service_methods_totals(start, end)
-        fail_service_methods = self.dynatrace_gateway.get_fail_service_methods_totals(start, end)
-        service_entities = ServiceFactory.parse(services, self.entity_name, self.entity_tag)
 
-        methods_entities = ServiceMethodFactory.parse(service_entities, service_methods)
-        fail_method_entities = ServiceMethodFactory.parse(service_entities, fail_service_methods)
+        fail_service_methods = self.dynatrace_gateway.get_fail_service_methods_totals(start, end)
+        
+        service_entities = ServiceFactory.parse(services, self.entity_name, self.entity_tag)
+        
+        methods_entities = ServiceMethodFactory.parse(service_entities, service_methods, self.prefix)
+        fail_method_entities = ServiceMethodFactory.parse(service_entities, fail_service_methods, self.prefix)
 
         bad_service_methods = self.dynatrace_gateway.get_fail_service_methods_400(start, end)
-        bad_method_entities = ServiceMethodFactory.parse(service_entities, bad_service_methods)
+        bad_method_entities = ServiceMethodFactory.parse(service_entities, bad_service_methods, self.prefix)
 
         latency_methods = self.dynatrace_gateway.get_service_methods_latency(start, end)
-        latency_method_entities = ServiceMethodFactory.parse(service_entities, latency_methods)
+        latency_method_entities = ServiceMethodFactory.parse(service_entities, latency_methods, self.prefix)
 
         return service_entities, methods_entities, fail_method_entities, bad_method_entities, latency_method_entities
 

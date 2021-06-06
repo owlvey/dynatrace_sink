@@ -1,4 +1,3 @@
 flask
 requests
 Flask-APScheduler
-mysql-connector-python

@@ -132,3 +132,6 @@ run_local.sh
 development.ps1
 
 /wip
+
+development.ini
+run_sync.ps1

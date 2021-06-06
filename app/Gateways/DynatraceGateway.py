@@ -10,21 +10,26 @@ PROXY_DIR = {
 
 class DynatraceGateway:
 
+    __cache_get_services = None
+
     def __init__(self, dynatrace_host, dynatrace_token, dynatrace_tag_service):        
         self.token = "Api-Token {}".format(dynatrace_token)
         self.host = dynatrace_host
         self.service_tag = dynatrace_tag_service        
 
     def get_services(self):
-        response = requests.get(self.host + "entity/services?includeDetails=true&tag={}&includeParentIds=true".format(self.service_tag),
-                                headers={"Authorization": self.token,
-                                         "accept": "application/json"}, 
-                                         verify=False, proxies = PROXY_DIR)
+        if not DynatraceGateway.__cache_get_services:            
+            response = requests.get(self.host + "entity/services?includeDetails=true&tag={}&includeParentIds=true".format(self.service_tag),
+                                    headers={"Authorization": self.token,
+                                            "accept": "application/json"}, 
+                                            verify=False, proxies = PROXY_DIR)
 
-        if response.status_code != 200:
-            raise ValueError(response.status_code)
+            if response.status_code != 200:
+                raise ValueError(response.status_code)
+            
+            DynatraceGateway.__cache_get_services = response.json()
 
-        return response.json()
+        return DynatraceGateway.__cache_get_services
 
     def get_fail_service_methods_totals(self, start, end):
         start_stamp = DatetimeUtils.convert_to_timestamp(start)
@@ -159,6 +164,20 @@ class DynatraceGateway:
                                 verify=False, proxies = PROXY_DIR)
 
         if response.status_code != 200:
+            raise ValueError(response.status_code)
+
+        return response.json()
+
+    def get_problems(self, start, end):
+        start_stamp = DatetimeUtils.convert_to_timestamp(start)
+        end_stamp = DatetimeUtils.convert_to_timestamp(end)        
+        target_url = self.host + "problem/feed?tag={}&status=CLOSED&startTimestamp={}&endTimestamp={}".format(
+            self.service_tag, start_stamp, end_stamp)
+        response = requests.get(target_url,  
+                                headers={"Authorization": self.token, "accept": "application/json"},
+                                verify=False, proxies = PROXY_DIR)
+
+        if response.status_code > 299:
             raise ValueError(response.status_code)
 
         return response.json()
