@@ -131,7 +131,7 @@ dmypy.json
 run_local.sh
 development.ps1
 
-/wip
+/wip/*
 
 development.ini
 run_sync.ps1
